@@ -67,13 +67,16 @@ class PIDFastController(Controller):
         # calculate change in pitch
         pitch = float(next_waypoint.record().split(",")[4])
 
+        #Downtown
         if self.region == 1:
-            if sharp_error < 0.68 or current_speed <= 90:
+            if sharp_error < 0.66 or current_speed <= 100:
                 throttle = 1
                 brake = 0
             else:
-                throttle = -1
+                throttle = -0.55
                 brake = 1
+        
+        #Hill 1
         elif self.region == 2:
             waypoint = self.waypoint_queue_braking[0] # 5012 is weird bump spot
             dist = self.agent.vehicle.transform.location.distance(waypoint.location)
@@ -87,7 +90,7 @@ class PIDFastController(Controller):
                 self.brake_counter += 1
                 if self.brake_counter >= 4:
                     self.brake_counter = 0
-            elif sharp_error >= 0.67 and current_speed > 70:
+            elif sharp_error >= 0.67 and current_speed > 80:
                 throttle = 0
                 brake = 0.4
             elif wide_error > 0.09 and current_speed > 92: # wide turn
@@ -96,7 +99,93 @@ class PIDFastController(Controller):
             else:
                 throttle = 1
                 brake = 0
+
+        #Hill 2
+        elif self.region == 4:
+            waypoint = self.waypoint_queue_braking[0] # 5012 is weird bump spot
+            dist = self.agent.vehicle.transform.location.distance(waypoint.location)
+            if dist <= 5:
+                self.brake_counter = 1
+                # print(self.waypoint_queue_braking[0])
+                self.waypoint_queue_braking.pop(0)
+            if self.brake_counter > 0:
+                throttle = -1
+                brake = 1
+                self.brake_counter += 1
+                if self.brake_counter >= 4:
+                    self.brake_counter = 0
+            elif sharp_error >= 0.69 and current_speed > 84:
+                throttle = 0
+                brake = 0.4
+            elif wide_error > 0.12 and current_speed > 86: # wide turn
+                throttle = max(0, 1 - 6*pow(wide_error + current_speed*0.003, 6))
+                brake = 0
+            else:
+                throttle = 1
+                brake = 0
         
+        
+        #Hill 3
+        elif self.region == 6:
+            brake = 1
+            waypoint = self.waypoint_queue_braking[0] # 5012 is weird bump spot
+            dist = self.agent.vehicle.transform.location.distance(waypoint.location)
+            if dist <= 5:
+                self.brake_counter = 1
+                # print(self.waypoint_queue_braking[0])
+                self.waypoint_queue_braking.pop(0)
+            if self.brake_counter > 0:
+                throttle = -1
+                brake = 1
+                self.brake_counter += 1
+                if self.brake_counter >= 4:
+                    self.brake_counter = 0
+            elif sharp_error >= 0.67 and current_speed > 80:
+                throttle = 0
+                brake = 0.4
+            elif wide_error > 0.09 and current_speed > 92: # wide turn
+                throttle = max(0, 1 - 6*pow(wide_error + current_speed*0.003, 6))
+                brake = 0
+            else:
+                throttle = 1
+                brake = 0
+
+        #Downtown 2
+        elif self.region == 3:
+            if sharp_error < 0.74 or current_speed <= 88:
+                throttle = 1
+                brake = 0
+                if current_speed >= 160:
+                    brake = 1
+            else:
+                throttle = -1
+                brake = 1
+
+        #Downtown 3
+        elif self.region == 5:
+            waypoint = self.waypoint_queue_region[0]
+            dist = self.agent.vehicle.transform.location.distance(waypoint.location)
+            if dist <= 15:
+                throttle = 0.7
+                brake = 0.6
+            if sharp_error < 0.74 or current_speed <= 88:
+                throttle = 1
+                brake = 0
+                if current_speed >= 155:
+                    brake = 1
+            else:
+                throttle = -1
+                brake = 1
+
+        #Downtown 4
+        elif self.region == 7:
+            if sharp_error < 0.66 or current_speed <= 86:
+                throttle = 1
+                brake = 0
+            else:
+                throttle = -0.8
+                brake = 1
+
         gear = max(1, (int)((current_speed - 2*pitch) / 60))
         if throttle == -1:
             gear = -1
