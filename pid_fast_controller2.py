@@ -102,13 +102,16 @@ class PIDFastController(Controller):
 
         #Hybrid 2 - On the way down towards downtown from hills
         elif self.region == 3:
-            if sharp_error < 0.68 or current_speed <= 85:
+            if current_speed >= 210:
+                throttle = 0.2
+                brake = 1
+            if sharp_error < 0.67 or current_speed <= 87:
                 throttle = 1
                 brake = 0
             elif sharp_error >= 0.66 and current_speed > 83:
-                throttle = -0.5
-                brake = 1
-            elif wide_error > 0.075 and current_speed > 92: # wide turn
+                throttle = -0.4
+                brake = 0.9
+            elif wide_error > 0.09 and current_speed > 92: # wide turn
                 throttle = max(0, 1 - 6*pow(wide_error + current_speed*0.003, 6))
                 brake = 0
             throttle = 1
