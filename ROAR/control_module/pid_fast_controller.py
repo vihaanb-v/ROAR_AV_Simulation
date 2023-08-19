@@ -67,16 +67,16 @@ class PIDFastController(Controller):
         # calculate change in pitch
         pitch = float(next_waypoint.record().split(",")[4])
 
-        #Downtown
+        #Downtown 1 - Starting Downtown
         if self.region == 1:
-            if sharp_error < 0.66 or current_speed <= 100:
+            if sharp_error < 0.68 or current_speed <= 100:
                 throttle = 1
                 brake = 0
             else:
                 throttle = -0.55
                 brake = 1
-        
-        #Hill 1
+
+        #Hill Regions 1, 2, 3, & 4 (Finish)
         elif self.region == 2:
             waypoint = self.waypoint_queue_braking[0] # 5012 is weird bump spot
             dist = self.agent.vehicle.transform.location.distance(waypoint.location)
@@ -99,35 +99,64 @@ class PIDFastController(Controller):
             else:
                 throttle = 1
                 brake = 0
+                
+        #Downtown 3 - End of hills re-entering downtown
+        elif self.region == 3:
+            if sharp_error < 0.74 or current_speed <= 89:
+                throttle = 1
+                brake = 0
+                if current_speed >= 158:
+                    brake = 1
+            else:
+                throttle = -1
+                brake = 1
 
-        #Hill 2
+        #Hill 5 - Smooth turns approaching the Roundabout
         elif self.region == 4:
             waypoint = self.waypoint_queue_braking[0] # 5012 is weird bump spot
             dist = self.agent.vehicle.transform.location.distance(waypoint.location)
-            if dist <= 5:
-                self.brake_counter = 1
-                # print(self.waypoint_queue_braking[0])
-                self.waypoint_queue_braking.pop(0)
-            if self.brake_counter > 0:
-                throttle = -1
+            if dist <= 4.5:
+                throttle = -0.4
                 brake = 1
-                self.brake_counter += 1
-                if self.brake_counter >= 4:
-                    self.brake_counter = 0
-            elif sharp_error >= 0.69 and current_speed > 84:
+                self.waypoint_queue_braking.pop(0)
+            elif sharp_error >= 0.66 and current_speed > 82:
                 throttle = 0
-                brake = 0.4
-            elif wide_error > 0.12 and current_speed > 86: # wide turn
+                brake = 0.5
+            elif wide_error > 0.09 and current_speed > 93: # wide turn
                 throttle = max(0, 1 - 6*pow(wide_error + current_speed*0.003, 6))
                 brake = 0
             else:
                 throttle = 1
                 brake = 0
-        
-        
-        #Hill 3
+
+        #Hill 6 - Roundabout
+        elif self.region == 5:
+            waypoint = self.waypoint_queue_braking[0] # 5012 is weird bump spot
+            dist = self.agent.vehicle.transform.location.distance(waypoint.location)
+            if dist <= 10:
+                self.brake_counter = 1
+                # print(self.waypoint_queue_braking[0])
+                self.waypoint_queue_braking.pop(0)
+            if self.brake_counter > 0:
+                throttle = -1
+                brake = 1
+                self.brake_counter += 1
+                if self.brake_counter >= 4:
+                    self.brake_counter = 0
+            if current_speed > 106:
+                throttle = -1
+                brake = 1
+            elif sharp_error >= 0.64 and current_speed > 80:
+                throttle = -0.4
+                brake = 0.9
+            elif wide_error > 0.09 and current_speed > 92: # wide turn
+                throttle = max(0, 1 - 6*pow(wide_error + current_speed*0.003, 6))
+                brake = 0
+            else:
+                throttle = 1
+                brake = 0
+
         elif self.region == 6:
-            brake = 1
             waypoint = self.waypoint_queue_braking[0] # 5012 is weird bump spot
             dist = self.agent.vehicle.transform.location.distance(waypoint.location)
             if dist <= 5:
@@ -140,6 +169,9 @@ class PIDFastController(Controller):
                 self.brake_counter += 1
                 if self.brake_counter >= 4:
                     self.brake_counter = 0
+            if current_speed>115:
+                throttle=-0.8
+                brake=1
             elif sharp_error >= 0.67 and current_speed > 80:
                 throttle = 0
                 brake = 0.4
@@ -150,41 +182,33 @@ class PIDFastController(Controller):
                 throttle = 1
                 brake = 0
 
-        #Downtown 2
-        elif self.region == 3:
-            if sharp_error < 0.74 or current_speed <= 88:
-                throttle = 1
-                brake = 0
-                if current_speed >= 160:
-                    brake = 1
-            else:
-                throttle = -1
-                brake = 1
-
-        #Downtown 3
-        elif self.region == 5:
-            waypoint = self.waypoint_queue_region[0]
-            dist = self.agent.vehicle.transform.location.distance(waypoint.location)
-            if dist <= 15:
-                throttle = 0.7
-                brake = 0.6
-            if sharp_error < 0.74 or current_speed <= 88:
-                throttle = 1
-                brake = 0
-                if current_speed >= 155:
-                    brake = 1
-            else:
-                throttle = -1
-                brake = 1
-
-        #Downtown 4
-        elif self.region == 7:
+        #Downtown 4 - Last straightaway
+        '''
+        elif self.region == 6:
             if sharp_error < 0.66 or current_speed <= 86:
-                throttle = 1
+                throttle = 0.91
                 brake = 0
             else:
-                throttle = -0.8
+                throttle = -0.7
                 brake = 1
+        '''
+
+        #Hybrid 2 - On the way down towards downtown from hills
+        '''
+        elif self.region == 3:
+            if sharp_error < 0.67 or current_speed <= 87:
+                throttle = 1
+                brake = 0
+            elif sharp_error >= 0.66 and current_speed > 83:
+                throttle = -0.4
+                brake = 0.9
+            elif wide_error > 0.09 and current_speed > 92: # wide turn
+                throttle = max(0, 1 - 6*pow(wide_error + current_speed*0.003, 6))
+                brake = 0
+            if current_speed >= 210:
+                throttle = -0.4
+                brake = 1     
+        '''
 
         gear = max(1, (int)((current_speed - 2*pitch) / 60))
         if throttle == -1:
