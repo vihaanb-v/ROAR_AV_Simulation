@@ -76,11 +76,11 @@ class PIDFastController(Controller):
                 throttle = -0.55
                 brake = 1
 
-        #Hill Regions 1, 2, 3, & 4 (Finish)
+        #Hill Region 2
         elif self.region == 2:
             waypoint = self.waypoint_queue_braking[0] # 5012 is weird bump spot
             dist = self.agent.vehicle.transform.location.distance(waypoint.location)
-            if dist <= 5:
+            if dist <= 6.8:
                 self.brake_counter = 1
                 # print(self.waypoint_queue_braking[0])
                 self.waypoint_queue_braking.pop(0)
@@ -169,8 +169,8 @@ class PIDFastController(Controller):
                 self.brake_counter += 1
                 if self.brake_counter >= 4:
                     self.brake_counter = 0
-            if current_speed>115:
-                throttle=-0.8
+            if current_speed>120:
+                throttle=-1
                 brake=1
             elif sharp_error >= 0.67 and current_speed > 80:
                 throttle = 0
