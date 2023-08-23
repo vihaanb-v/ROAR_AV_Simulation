@@ -159,7 +159,7 @@ class PIDFastController(Controller):
                 if self.brake_counter >= 4:
                     self.brake_counter = 0
             elif sharp_error >= 0.68 and current_speed > 84:
-                throttle = 0.4
+                throttle = 0.45
                 brake = 0.5
             elif wide_error > 0.09 and current_speed > 92: # wide turn
                 throttle = max(0, 1 - 6*pow(wide_error + current_speed*0.003, 6))
@@ -170,11 +170,11 @@ class PIDFastController(Controller):
                 
         #Downtown 5 - After 2nd bump turn
         elif self.region == 9:
-            if sharp_error < 0.74 or current_speed <= 89:
+            if sharp_error < 0.74 or current_speed <= 90:
                 throttle = 1
                 brake = 0
-                if current_speed >= 160:
-                    throttle = -0.25
+                if current_speed >= 165:
+                    throttle = -0.3
                     brake = 1
             else:
                 throttle = -1
@@ -219,7 +219,7 @@ class PIDFastController(Controller):
                 if self.brake_counter >= 4:
                     self.brake_counter = 0
             elif sharp_error >= 0.66 and current_speed > 86:
-                throttle = 0.3
+                throttle = 0.75
                 brake = 0
             elif wide_error > 0.09 and current_speed > 92: # wide turn
                 throttle = max(0, 1 - 6*pow(wide_error + current_speed*0.003, 6))
@@ -243,7 +243,7 @@ class PIDFastController(Controller):
                 if self.brake_counter >= 4:
                     self.brake_counter = 0
             if current_speed > 106:
-                throttle = -0.5
+                throttle = -0.2
                 brake = 1
             elif sharp_error >= 0.64 and current_speed > 80:
                 throttle = -0.4
