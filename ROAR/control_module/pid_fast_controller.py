@@ -288,20 +288,8 @@ class PIDFastController(Controller):
 
         #Hill Region 5 - 3rd bump turn
         elif self.region == 14:
-            waypoint = self.waypoint_queue_braking[0] # 5012 is weird bump spot
-            dist = self.agent.vehicle.transform.location.distance(waypoint.location)
-            if dist <= 4:
-                self.brake_counter = 1
-                # print(self.waypoint_queue_braking[0])
-                self.waypoint_queue_braking.pop(0)
-            if self.brake_counter > 0:
-                throttle = -1
-                brake = 1
-                self.brake_counter += 1
-                if self.brake_counter >= 4:
-                    self.brake_counter = 0
-            elif sharp_error >= 0.69 and current_speed > 89:
-                throttle = -0.25
+            if sharp_error >= 0.68 and current_speed > 80:
+                throttle = -0.6
                 brake = 1
             elif wide_error > 0.09 and current_speed > 92: # wide turn
                 throttle = max(0, 1 - 6*pow(wide_error + current_speed*0.003, 6))
@@ -314,7 +302,7 @@ class PIDFastController(Controller):
         elif self.region == 15:
             waypoint = self.waypoint_queue_braking[0] # 5012 is weird bump spot
             dist = self.agent.vehicle.transform.location.distance(waypoint.location)
-            if dist <= 5:
+            if dist <= 3.5:
                 self.brake_counter = 1
                 # print(self.waypoint_queue_braking[0])
                 self.waypoint_queue_braking.pop(0)
@@ -325,7 +313,7 @@ class PIDFastController(Controller):
                 if self.brake_counter >= 4:
                     self.brake_counter = 0
             elif sharp_error >= 0.66 and current_speed > 86:
-                throttle = 0.9
+                throttle = 0.95
                 brake = 0
             elif wide_error > 0.09 and current_speed > 92: # wide turn
                 throttle = max(0, 1 - 6*pow(wide_error + current_speed*0.003, 6))
@@ -360,6 +348,7 @@ class PIDFastController(Controller):
             else:
                 throttle = 1
                 brake = 0        
+
         # Hill Region 9 - End straightaway
         elif self.region == 17:
             if current_speed >= 120:
